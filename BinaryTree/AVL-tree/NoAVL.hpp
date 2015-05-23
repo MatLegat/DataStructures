@@ -1,9 +1,11 @@
+// Copyright [2015] <Matteus Legat>
+
 #ifndef NO_AVL_HPP
 #define NO_AVL_HPP
 #include <vector>
 
 template <typename T>
-class NoAVL  {
+class NoAVL {
  private:
     T* dado;
     int altura;
@@ -15,6 +17,8 @@ class NoAVL  {
     explicit NoAVL(const T& dado) {
         altura = 1;
         this->dado = new T(dado);
+        esquerda = NULL;
+        direita = NULL;
     }
 
     virtual ~NoAVL();
@@ -69,8 +73,21 @@ class NoAVL  {
         return direita;
     }
 
-    //////////////////////////////- COMPLETAR -/////////////////////////////////
-    NoAVL<T>* inserir(const T& dado, NoAVL<T>* arv);
+    NoAVL<T>* inserir(const T& dado, NoAVL<T>* arv) {
+		if (arv == NULL) {  // nodo nao existe ainda
+			arv = new NoAVL<T>(dado);
+			return arv;
+		}
+
+		if (dado <= *arv->dado)
+		    arv->esquerda = inserir(dado, arv->esquerda);
+		else
+		    arv->direita = inserir(dado, arv->direita);
+
+		return equilibra(arv);
+	}
+
+    /////////////////////////////- INCOMPLETO -/////////////////////////////////
     NoAVL<T>* remover(NoAVL<T>* arv, const T& dado);
     ////////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +109,7 @@ class NoAVL  {
 		return t;
     }
 
-    NoAVL<T>* Equilibra(NoAVL<T> *no) {
+    NoAVL<T>* equilibra(NoAVL<T> *no) {
 		no->updateAltura();
 		if (no->esquerda->altura > no->direita->altura + 1) {
 			if (no->esquerda->direita->altura > no->esquerda->esquerda->altura)
