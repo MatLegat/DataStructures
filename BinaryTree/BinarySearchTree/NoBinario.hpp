@@ -1,5 +1,3 @@
-// Copyright [2015] <Matteus Legat>
-
 #ifndef NO_BINARIO_HPP
 #define NO_BINARIO_HPP
 
