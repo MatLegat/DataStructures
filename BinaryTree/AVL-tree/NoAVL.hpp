@@ -18,15 +18,15 @@ class NoAVL  {
     }
 
     virtual ~NoAVL();
-    
+
     int getAltura() {
         return altura;
     }
-    
+
     void updateAltura() {
         if (esquerda == NULL) {
             if (direita == NULL)
-                altura 1;  // Nenhum filho
+                altura = 1;  // Nenhum filho
             else
                 altura = 1 + direita->getAltura();  // Altura da direita (único)
         } else if (direita == NULL) {
@@ -42,7 +42,7 @@ class NoAVL  {
                 altura = alturaEsquerda + 1;
         }
     }
-    
+
     int getBalanco() {
         if (esquerda == NULL) {
             if (direita == NULL)
@@ -53,7 +53,7 @@ class NoAVL  {
             // esquerda != NULL, pois ja foi testado antes
             return esquerda->getAltura();  // Altura da esquerda (único)
         } else {  // esquerda != NULL && direita != NULL
-            return esquerda->getAltura() - direita->getAltura()
+            return esquerda->getAltura() - direita->getAltura();
         }
     }
 
@@ -82,7 +82,7 @@ class NoAVL  {
 		t->updateAltura();
 		return t;
     }
-    
+
     NoAVL<T> *rodaDireita(NoAVL<T> *no) {
 		NoAVL<T> *t = no->direita;
 		no->direita = t->esquerda;
@@ -97,7 +97,7 @@ class NoAVL  {
 		if (no->esquerda->altura > no->direita->altura + 1) {
 			if (no->esquerda->direita->altura > no->esquerda->esquerda->altura)
 				no->esquerda = rodaDireita(no->esquerda);  // rotaçao dupla
-			no = rodaEsquerda(N);  // simples sem a anterior
+			no = rodaEsquerda(no);  // simples sem a anterior
 		} else {
 		    if (no->direita->altura > no->esquerda->altura + 1) {
 			    if (no->direita->esquerda->altura > no->direita->direita->altura)
