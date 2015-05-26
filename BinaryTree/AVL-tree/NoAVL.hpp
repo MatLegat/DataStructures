@@ -21,44 +21,31 @@ class NoAVL {
         direita = NULL;
     }
 
-    virtual ~NoAVL();
+    virtual ~NoAVL() {}
 
     int getAltura() {
         return altura;
     }
 
-    void updateAltura() {
-        if (esquerda == NULL) {
-            if (direita == NULL)
-                altura = 1;  // Nenhum filho
+    void updateAltura(NoAVL<T> *arv) {
+        int alturaMaiorFilho;
+        if (arv->esquerda == NULL) {
+            if (arv->direita == NULL)
+                alturaMaiorFilho = 0;
             else
-                altura = 1 + direita->getAltura();  // Altura da direita (único)
+                alturaMaiorFilho = arv->direita->getAltura();
         } else if (direita == NULL) {
-            // esquerda != NULL, pois ja foi testado antes
-            altura = 1 + esquerda->getAltura();  // Altura da esquerda (único)
-        } else {  // esquerda != NULL && direita != NULL
-            // Considera maior altura:
+            alturaMaiorFilho = arv->esquerda->getAltura();  // esquerda!=NULL
+        } else {  // Nenhum null
             int alturaDireita = direita->getAltura();
             int alturaEsquerda = esquerda->getAltura();
             if (alturaDireita > alturaEsquerda)
-                altura = alturaDireita + 1;
+                alturaMaiorFilho = alturaDireita;
             else
-                altura = alturaEsquerda + 1;
+                alturaMaiorFilho = alturaEsquerda;
         }
-    }
-
-    int getBalanco() {
-        if (esquerda == NULL) {
-            if (direita == NULL)
-                return 0;  // Nenhum filho -> equilibrado
-            else
-                return -1 * direita->getAltura();  // Altura da direita (único)
-        } else if (direita == NULL) {
-            // esquerda != NULL, pois ja foi testado antes
-            return esquerda->getAltura();  // Altura da esquerda (único)
-        } else {  // esquerda != NULL && direita != NULL
-            return esquerda->getAltura() - direita->getAltura();
-        }
+        arv->altura = 1 + alturaMaiorFilho;
+        //  return altura = 1 + alturaMaiorFilho;
     }
 
     std::vector<NoAVL<T>* > getElementos() {
@@ -73,56 +60,133 @@ class NoAVL {
         return direita;
     }
 
+    int getBalanco(NoAVL<T>* arv) {
+        if (arv->esquerda == NULL) {
+            if (arv->direita == NULL)
+                return 0;
+            else
+                return -1 * arv->direita->altura;
+        } else if (arv->direita == NULL) {
+            return arv->esquerda->altura;
+        } else {
+            return arv->esquerda->altura - arv->direita->altura > 1;
+        }
+    }
+
     NoAVL<T>* inserir(const T& dado, NoAVL<T>* arv) {
-		if (arv == NULL) {  // nodo nao existe ainda
-			arv = new NoAVL<T>(dado);
-			return arv;
+	    if (arv == NULL) {
+	        return new NoAVL<T>(dado);
+        } else if (dado < *arv->getDado()) {
+            // Inserção à esquerda.
+            arv->esquerda = inserir(dado, arv->esquerda);
+            if (getBalanco(arv) > 1) {
+                if (dado < *arv->esquerda->dado)
+                    arv = rodaDireita(arv);
+                else
+                    arv = rodaDireitaDuplo(arv);
+            }
+        } else {
+            // direita
+            arv->direita = inserir(dado, arv->direita);
+            if (getBalanco(arv) > 1) {
+                if (dado > *arv->direita->dado)
+                    arv = rodaEsquerda(arv);
+                else
+                    arv = rodaEsquerdaDuplo(arv);
+            }
+        }
+    	updateAltura(arv);
+        return arv;
+	}
+
+    NoAVL<T>* remover(NoAVL<T>* arv, const T& dado) {
+		NoAVL<T> *t;  // Auxiliar
+		if (arv == NULL)
+		    arv = new NoAVL<T>(dado);
+		    return arv;
+		if (*arv->dado == dado) {  // Encontrou dado para remover
+			if (arv->esquerda == NULL || arv->direita == NULL) {  // Tem 1 filho
+				if (arv->esquerda == NULL)
+				    t = arv->direita;
+				else
+				    t = arv->esquerda;
+				delete arv;
+				return t;
+			} else {  // nao tem filho
+			    // Coloca o menor dado da direita no lugar
+				for (t = arv->direita; t->esquerda != NULL; t = t->esquerda) {}
+				arv->dado = t->dado;
+				arv->direita = remover(arv->direita, *t->dado);
+				return equilibra(arv);
+			}
 		}
 
-		if (dado <= *arv->dado)
-		    arv->esquerda = inserir(dado, arv->esquerda);
+		if (dado < *arv->dado)
+		    arv->esquerda = remover(arv->esquerda, dado);
 		else
-		    arv->direita = inserir(dado, arv->direita);
+		    arv->direita = remover(arv->direita, dado);
 
 		return equilibra(arv);
 	}
 
-    /////////////////////////////- INCOMPLETO -/////////////////////////////////
-    NoAVL<T>* remover(NoAVL<T>* arv, const T& dado);
-    ////////////////////////////////////////////////////////////////////////////
-
-    NoAVL<T> *rodaEsquerda(NoAVL<T> *no) {
-		NoAVL<T> *t = no->esquerda;
-		no->esquerda = t->direita;
-		t->direita = no;
-		no->updateAltura();
-		t->updateAltura();
+    NoAVL<T> *rodaEsquerda(NoAVL<T> *arv) {
+		NoAVL<T> *t = arv->esquerda;  // Auxiliar
+	    arv->esquerda = t->direita;
+	    t->direita = arv;
+		updateAltura(arv);
+		updateAltura(t);
 		return t;
     }
 
-    NoAVL<T> *rodaDireita(NoAVL<T> *no) {
-		NoAVL<T> *t = no->direita;
-		no->direita = t->esquerda;
-		t->esquerda = no;
-		no->updateAltura();
-		t->updateAltura();
-		return t;
+    NoAVL<T> *rodaDireita(NoAVL<T> *arv) {
+		NoAVL<T> *t = arv->direita;  // Auxiliar
+		arv->direita = t->esquerda;
+		t->esquerda = arv;
+		updateAltura(arv);
+		updateAltura(t);
+	    return t;
+	}
+
+    NoAVL<T>* rodaEsquerdaDuplo(NoAVL<T> *arv) {
+        arv->esquerda = rodaDireita(arv->esquerda);
+        return rodaEsquerda(arv);
     }
 
-    NoAVL<T>* equilibra(NoAVL<T> *no) {
-		no->updateAltura();
-		if (no->esquerda->altura > no->direita->altura + 1) {
-			if (no->esquerda->direita->altura > no->esquerda->esquerda->altura)
-				no->esquerda = rodaDireita(no->esquerda);  // rotaçao dupla
-			no = rodaEsquerda(no);  // simples sem a anterior
+    NoAVL<T>* rodaDireitaDuplo(NoAVL<T> *arv) {
+        arv->direita = rodaEsquerda(arv->direita);
+        return rodaDireita(arv);
+    }
+
+    NoAVL<T>* equilibra(NoAVL<T> *arv) {
+    	if (getBalanco(arv) > 1) {
+    		if (getBalanco(arv->esquerda) > 0) {
+	    		arv = rodaEsquerda(arv);
+		    } else {
+			    arv = rodaEsquerdaDuplo(arv);
+		    }
+	    } else if (getBalanco(arv) < -1) {
+	    	if (getBalanco(arv->direita) > 0) {
+			    arv = rodaDireitaDuplo(arv);
+		    } else {
+		    	arv = rodaDireita(arv);
+		    }
+	    }
+	    return arv;
+
+	/*
+		updateAltura(arv);
+		if (getBalanco(arv) > 1) {  // arv->esquerda maior
+			if (getBalanco(arv->esquerda) < 0)  // arv->esquerda->direita maior
+				arv->esquerda = rodaDireita(arv->esquerda);  // rotaçao dupla
+			arv = rodaEsquerda(arv);  // simples sem a anterior
 		} else {
-		    if (no->direita->altura > no->esquerda->altura + 1) {
-			    if (no->direita->esquerda->altura > no->direita->direita->altura)
-				    no->direita = rodaEsquerda(no->direita);  // Caso dupla
-			    no = rodaDireita(no);
+		    if (getBalanco(arv) < 1) {  // arv->direita maior
+			    if (getBalanco(arv->direita) > 0)  // arv->direita->esquerda maior
+				    arv->direita = rodaEsquerda(arv->direita);  // Caso dupla
+			    arv = rodaDireita(arv);
 		    }
 		}
-		return no;
+		return arv; */
 	}
 
     NoAVL<T>* minimo(NoAVL<T>* nodo) {
@@ -137,7 +201,7 @@ class NoAVL {
     }
 
     T* busca(const T& dado, NoAVL<T>* arv) {
-        while (arv != NULL) {
+                while (arv != NULL) {
             if (*arv->getDado() != dado) {
                 // Esquerda ou direita
                 if (*arv->getDado() < dado)
