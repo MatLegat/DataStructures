@@ -98,7 +98,7 @@ class NoAVL {
 	}
 //--------------------------------- ERRADO -----------------------------------
     NoAVL<T>* remover(NoAVL<T>* arv, const T& dado) { 
-		/*NoAVL<T> *t;  // Auxiliar
+		NoAVL<T> *t;  // Auxiliar
 		if (arv == NULL)
 		    arv = new NoAVL<T>(dado);
 		    return arv;
@@ -124,7 +124,7 @@ class NoAVL {
 		else
 		    arv->direita = remover(arv->direita, dado);
 
-	 	return equilibra(arv);  /*
+	 	return equilibra(arv);  
 	}
 //----------------------------------------------------------------------------
 
