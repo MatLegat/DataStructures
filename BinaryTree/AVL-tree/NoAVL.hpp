@@ -96,37 +96,48 @@ class NoAVL {
     	updateAltura(arv);
         return arv;
 	}
-//--------------------------------- ERRADO -----------------------------------
-    NoAVL<T>* remover(NoAVL<T>* arv, const T& dado) { 
-		NoAVL<T> *t;  // Auxiliar
-		if (arv == NULL)
-		    arv = new NoAVL<T>(dado);
-		    return arv;
-		if (*arv->dado == dado) {  // Encontrou dado para remover
-			if (arv->esquerda == NULL || arv->direita == NULL) {  // Tem 1 filho
-				if (arv->esquerda == NULL)
-				    t = arv->direita;
-				else
-				    t = arv->esquerda;
-				delete arv;
-				return t;
-			} else {  // nao tem filho
-			    // Coloca o menor dado da direita no lugar
-				for (t = arv->direita; t->esquerda != NULL; t = t->esquerda) {}
-				arv->dado = t->dado;
-				arv->direita = remover(arv->direita, *t->dado);
- 				return equilibra(arv);
-			}
-		}
 
-		if (dado < *arv->dado)
-		    arv->esquerda = remover(arv->esquerda, dado);
-		else
-		    arv->direita = remover(arv->direita, dado);
-
-	 	return equilibra(arv);  
-	}
-//----------------------------------------------------------------------------
+    NoAVL<T>* remover(NoAVL<T>* arv, const T& dado) {
+        NoAVL<T> *tmp, *filho;
+        if (arv == NULL) {
+            return arv;
+        } else if (dado < *arv->getDado()) {  // Vá à esquerda.
+            arv->esquerda = remover(arv->getEsquerda(), dado);
+            arv = equilibra(arv, *(maximo(arv))->getDado());
+			updateAltura(arv);
+            return arv;
+        } else if (dado > *arv->getDado()) {  // Vá à direita.
+            arv->direita = (remover(arv->getDireita(), dado));
+            arv = equilibra(arv, *(minimo(arv))->getDado());
+	    	updateAltura(arv);
+            return arv;
+        } else {  // Encontrou elemento que quero deletar.
+            if (arv->getDireita() != NULL && arv->getEsquerda() != NULL) {
+                // 2 filhos.
+                tmp = minimo(arv->getDireita());
+                arv->dado = (tmp->getDado());
+                arv->direita = (remover(arv->getDireita(), *arv->getDado()));
+                arv = equilibra(arv, *(minimo(arv))->getDado());
+			    updateAltura(arv);
+                return arv;
+            } else {  // 1 filho.
+                tmp = arv;
+                if (arv->getDireita() != NULL) {  // Filho à direita.
+                    filho = arv->getDireita();
+                    return filho;
+                } else {
+                    // Filho à esquerda.
+                    if (arv->getEsquerda() != NULL) {
+                        filho = arv->getEsquerda();
+                        return filho;
+                    } else {  // Folha.
+                        delete arv;
+                        return NULL;
+                    }
+                }
+            }
+        }
+    }
 
     NoAVL<T> *rodaEsquerda(NoAVL<T> *arv) {
 		NoAVL<T> *t = arv->esquerda;  // Auxiliar
@@ -182,6 +193,13 @@ class NoAVL {
     NoAVL<T>* minimo(NoAVL<T>* nodo) {
         if (nodo->getEsquerda() != NULL)
             return minimo(nodo->getEsquerda());
+        else
+            return nodo;
+    }
+
+    NoAVL<T>* maximo(NoAVL<T>* nodo) {
+        if (nodo->getDireita() != NULL)
+            return maximo(nodo->getDireita());
         else
             return nodo;
     }
